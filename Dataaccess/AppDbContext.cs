@@ -29,6 +29,7 @@ namespace Dataaccess
         public DbSet<Users> Users { get; set; }
         public DbSet<Teams> Teams { get; set; }
         public DbSet<UserTeams> UserTeams { get; set; }
+        public DbSet<TaskLocation> TaskLocation { get; set; }
 
 
 

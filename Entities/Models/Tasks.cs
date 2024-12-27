@@ -19,9 +19,12 @@ namespace Entities.Models
         public int? AssignedToTeamId { get; set; }
         public int IsTeamTask { get; set; }
         public DateTime CreatedAt { get; set; }
-
+        public int TaskType { get; set; }
+        public int TaskStatus { get; set; }
+        public int TaskPriority { get; set; }
         public virtual Users AssignedByUser { get; set; }
         public virtual Users AssignedToUser { get; set; }
         public virtual Teams AssignedToTeam { get; set; }
+        public virtual TaskLocation TaskLocation { get; set; }
     }
 }

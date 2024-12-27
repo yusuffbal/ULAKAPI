@@ -17,7 +17,7 @@ namespace Entities.Models
         public int TeamId { get; set; }
         public string Role { get; set; }
         public int RoleId { get; set; }
-
+        public string status { get; set; }
         public virtual Users User { get; set; }
         public virtual Teams Team { get; set; }
         public virtual Roles RoleDetails { get; set; }
