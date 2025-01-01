@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Dataaccess.Concrete
 {
-    public class EfRolesDal: EfEntityRepositoryBase<Roles, AppDbContext>, IRolesDal
+    public class EfRolesDal: EfEntityRepositoryBase<Role, AppDbContext>, IRolesDal
     {
     }
 }

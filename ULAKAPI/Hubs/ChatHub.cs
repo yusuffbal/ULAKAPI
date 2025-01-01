@@ -1,6 +1,7 @@
-﻿using Business.Abstract;
+﻿using Entities.Models;
 using Microsoft.AspNetCore.SignalR;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ULAKAPI.Hubs
@@ -8,78 +9,107 @@ namespace ULAKAPI.Hubs
     public class ChatHub : Hub
     {
         private readonly IMessageService _messageService;
-        private readonly ICryptingService _cryptingService;
 
-        public ChatHub(IMessageService messageService, ICryptingService cryptingService)
+        // Kullanıcı bağlantılarının tutulduğu statik bir sözlük
+        private static readonly Dictionary<string, string> _userConnections = new Dictionary<string, string>();
+
+        public ChatHub(IMessageService messageService)
         {
             _messageService = messageService;
-            _cryptingService = cryptingService;
         }
 
-        public async Task SendMessageToUser(int recipientId, string messageContent)
+        // Kullanıcı bağlantı kurduğunda çağrılır
+        public async Task RegisterConnection(string userId)
         {
-            if (int.TryParse(Context.UserIdentifier, out var senderId))
+            var connectionId = Context.ConnectionId;
+
+            // Kullanıcı daha önce bağlanmamışsa, yeni bağlantı ekle
+            if (!_userConnections.ContainsKey(userId))
             {
-                var encryptedMessage = _cryptingService.Encrypt(messageContent);
-
-                await _messageService.AddMessage(senderId, recipientId, encryptedMessage);
-
-                await Clients.User(recipientId.ToString()).SendAsync("ReceiveMessage", senderId, encryptedMessage, DateTime.UtcNow);
+                _userConnections.Add(userId, connectionId);
             }
             else
             {
-                throw new Exception("Geçersiz senderId.");
+                // Kullanıcı zaten bağlanmışsa, mevcut connectionId'yi güncelle
+                _userConnections[userId] = connectionId;
             }
+
+            // Bağlantının başarılı olduğunu istemciye bildir
+            Console.WriteLine("registerconn: "+ _userConnections);
+            await Clients.Caller.SendAsync("Connected", userId);
         }
 
-        public async Task SendMessageToGroup(int groupId, string messageContent, string groupName)
+        // Kullanıcıya mesaj gönder
+        public async Task SendMessageToUser(string senderId, string recipientId, string content)
         {
-            if (int.TryParse(Context.UserIdentifier, out var senderId))
+            // Alıcı için connectionId bulunuyor
+            if (_userConnections.TryGetValue(recipientId, out var connectionId))
             {
-                var encryptedMessage = _cryptingService.Encrypt(messageContent);
-
-                await _messageService.AddGroupMessage(senderId, groupId, encryptedMessage);
-
-                await Clients.Group(groupName).SendAsync("ReceiveGroupMessage", senderId, encryptedMessage, DateTime.UtcNow);
-            }
-            else
-            {
-                throw new Exception("Geçersiz senderId.");
-            }
-        }
-
-        public async Task<List<string>> GetMessages(int recipientId)
-        {
-            if (int.TryParse(Context.UserIdentifier, out var senderId))
-            {
-                var messages = await _messageService.GetMessages(senderId, recipientId);
-
-                var decryptedMessages = new List<string>();
-                foreach (var message in messages)
+                Console.WriteLine(_userConnections);
+                // Mesaj oluşturuluyor
+                var message = new Message
                 {
-                    decryptedMessages.Add(_cryptingService.Decrypt(message.Content));
-                }
+                    SenderId = int.Parse(senderId),
+                    RecipientId = int.Parse(recipientId),
+                    Content = content,
+                    SentAt = DateTime.Now
+                };
+                _messageService.SendMessage(message);
 
-                return decryptedMessages;
+                // Mesajı alıcıya gönder
+                await Clients.Client(connectionId).SendAsync("ReceiveMessage", message);
             }
             else
             {
-                throw new Exception("Geçersiz senderId.");
+                // Eğer alıcı bağlantı kurmamışsa, mesajı veri tabanına kaydedebiliriz
+                var message = new Message
+                {
+                    SenderId = int.Parse(senderId),
+                    RecipientId = int.Parse(recipientId),
+                    Content = content,
+                    SentAt = DateTime.Now
+                };
+                
+                // Mesajı veri tabanına kaydet
+                _messageService.SendMessage(message);
             }
         }
 
-        public async Task<List<string>> GetGroupMessages(int groupId)
+        // Gruplara mesaj gönder
+        public async Task SendMessageToGroup(string groupId, string senderId, string content)
         {
-            var messages = await _messageService.GetGroupMessages(groupId);
-
-            var decryptedMessages = new List<string>();
-            foreach (var message in messages)
+            // Mesaj oluşturuluyor
+            var message = new Message
             {
-                decryptedMessages.Add(_cryptingService.Decrypt(message.Content));
-            }
+                SenderId = int.Parse(senderId),
+                GroupId = int.Parse(groupId),
+                Content = content,
+                SentAt = DateTime.Now
+            };
 
-            return decryptedMessages;
+            // Mesajı veri tabanına kaydet
+            _messageService.SendMessage(message);
+
+            // Grupla mesajı paylaşıyoruz
+            await Clients.Group(groupId).SendAsync("ReceiveMessage", message);
         }
 
+        // Bağlantıyı sonlandırma (Bağlantı koparsa yapılacak işlem)
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            var connectionId = Context.ConnectionId;
+
+            // Kullanıcı bağlantısını sonlandırıyoruz
+            foreach (var key in _userConnections.Keys)
+            {
+                if (_userConnections[key] == connectionId)
+                {
+                    _userConnections.Remove(key);
+                    break;
+                }
+            }
+
+            await base.OnDisconnectedAsync(exception);
+        }
     }
 }

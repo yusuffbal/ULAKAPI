@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Dataaccess.Concrete
 {
-    public class EfPollsDal: EfEntityRepositoryBase<Polls, AppDbContext>, IPollsDal
+    public class EfPollsDal: EfEntityRepositoryBase<Poll, AppDbContext>, IPollsDal
     {
     }
 }

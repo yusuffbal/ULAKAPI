@@ -6,12 +6,17 @@ using System.Threading.Tasks;
 
 namespace Business.Abstract
 {
-    public interface ICryptingService
+    public interface IRsaCryptingService
     {
-        byte[] EncryptMessage(string message, string aesKey);
-        string DecryptMessage(byte[] encryptedMessage, string aesKey);
-        string GenerateAesKey();
+        // AES anahtarını belirtilen public anahtarla şifreler
         public byte[] EncryptAesKey(string aesKey, string publicKeySender, string publicKeyReceiver);
+
+        // Şifrelenmiş AES anahtarını belirtilen private anahtarla çözer
         public string DecryptAesKey(byte[] encryptedAesKey, string privateKeySender, string privateKeyReceiver);
+
+        // AES anahtarını her iki kullanıcı için de şifreler
+        byte[] EncryptAesKeyForMultipleUsers(string aesKey, string[] publicKeys);
+
+
     }
 }

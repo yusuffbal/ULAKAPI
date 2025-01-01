@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Dataaccess.Concrete
 {
-    public class EfTasksDal: EfEntityRepositoryBase<Tasks, AppDbContext>, ITasksDal
+    public class EfTasksDal: EfEntityRepositoryBase<ProjectTask, AppDbContext>, ITasksDal
     {
     }
 }

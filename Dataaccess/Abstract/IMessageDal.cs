@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 
 namespace Dataaccess.Abstract
 {
-    public interface IMessageDal : IEntityRepository<Messages>
+    public interface IMessageDal : IEntityRepository<Message>
     {
+
+
     }
 }

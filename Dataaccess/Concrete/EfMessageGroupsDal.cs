@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Dataaccess.Concrete
 {
-    public class EfMessageGroupsDal: EfEntityRepositoryBase<MessageGroups, AppDbContext>, IMessageGroupsDal
+    public class EfMessageGroupsDal: EfEntityRepositoryBase<MessageGroup, AppDbContext>, IMessageGroupsDal
     {
     }
 }

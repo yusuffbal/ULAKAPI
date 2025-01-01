@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Dataaccess.Concrete
 {
-    public class EfTeamsDal: EfEntityRepositoryBase<Teams, AppDbContext>, ITeamsDal
+    public class EfTeamsDal: EfEntityRepositoryBase<Team, AppDbContext>, ITeamsDal
     {
     }
 }
