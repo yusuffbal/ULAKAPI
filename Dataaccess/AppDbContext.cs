@@ -35,6 +35,7 @@ namespace Dataaccess
         public DbSet<UserTeam> UserTeams { get; set; }
         public DbSet<TaskLocation> TaskLocations { get; set; }
 
-       
+        public DbSet<sehir> sehir { get; set; }
+
     }
 }

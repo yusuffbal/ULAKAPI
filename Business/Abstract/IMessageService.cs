@@ -9,6 +9,7 @@ public interface IMessageService
     Task<List<Message>> GetMessagesByUserIdAsync(int userId);
     Task<List<Message>> GetMessagesByGroupIdAsync(int groupId);
     Task<List<ChatListDto>> ListChatsAsync(int currentUserId);
+    Task<List<Message>> GetMessagesByChatAndUserIdAsync(int chatId, int userId);
 
 
 }

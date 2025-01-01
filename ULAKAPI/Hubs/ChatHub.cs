@@ -42,10 +42,12 @@ namespace ULAKAPI.Hubs
         // Kullanıcıya mesaj gönder
         public async Task SendMessageToUser(string senderId, string recipientId, string content)
         {
-            // Alıcı için connectionId bulunuyor
-            if (_userConnections.TryGetValue(recipientId, out var connectionId))
+            try
             {
-                Console.WriteLine(_userConnections);
+                // Alıcının ve gönderenin bağlantı durumlarını kontrol et
+                bool hasRecipientConnection = _userConnections.TryGetValue(recipientId, out var connectionIdRecipient);
+                bool hasSenderConnection = _userConnections.TryGetValue(senderId, out var connectionIdSender);
+
                 // Mesaj oluşturuluyor
                 var message = new Message
                 {
@@ -54,26 +56,30 @@ namespace ULAKAPI.Hubs
                     Content = content,
                     SentAt = DateTime.Now
                 };
-                _messageService.SendMessage(message);
 
-                // Mesajı alıcıya gönder
-                await Clients.Client(connectionId).SendAsync("ReceiveMessage", message);
-            }
-            else
-            {
-                // Eğer alıcı bağlantı kurmamışsa, mesajı veri tabanına kaydedebiliriz
-                var message = new Message
+                if (hasRecipientConnection && hasSenderConnection)
                 {
-                    SenderId = int.Parse(senderId),
-                    RecipientId = int.Parse(recipientId),
-                    Content = content,
-                    SentAt = DateTime.Now
-                };
-                
-                // Mesajı veri tabanına kaydet
-                _messageService.SendMessage(message);
+                    Console.WriteLine($"Recipient Connection: {connectionIdRecipient}, Sender Connection: {connectionIdSender}");
+
+                    // Mesajı alıcıya gönder
+                    await Clients.Client(connectionIdRecipient).SendAsync("ReceiveMessage", message);
+                }
+                else
+                {
+                    Console.WriteLine("Recipient or sender is not connected. Saving message to database.");
+
+                    // Eğer bağlantı kurulu değilse, mesajı veri tabanına kaydet
+                    _messageService.SendMessage(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in SendMessageToUser: {ex.Message}");
+                throw; // Hatanın istemciye iletilmesi gerekiyorsa bu satırı koruyabilirsiniz.
             }
         }
+
+
 
         // Gruplara mesaj gönder
         public async Task SendMessageToGroup(string groupId, string senderId, string content)

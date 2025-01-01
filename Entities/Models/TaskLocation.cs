@@ -14,20 +14,15 @@ namespace Entities.Models
     {
         [Key]
         public int Id { get; set; }
-
         public int TaskId { get; set; }
-
         [Required]
         public decimal Latitude { get; set; }
-
         [Required]
         public decimal Longitude { get; set; }
-
         public string Name { get; set; }
         public string Address { get; set; }
-
         public decimal? Altitude { get; set; }
-
+        public int? cityId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 

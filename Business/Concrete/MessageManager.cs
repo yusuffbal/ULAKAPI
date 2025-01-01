@@ -88,7 +88,7 @@ public class MessageManager : IMessageService
                         .FirstOrDefault();
 
                     // Varsayılan şifre çözülmüş mesaj
-                    string decryptedMessage = "No messages";
+                    string decryptedMessage = "";
 
                     if (lastMessage != null)
                     {
@@ -97,9 +97,9 @@ public class MessageManager : IMessageService
                             // AES anahtarını deşifre et
                             var aesKey = _cryptingService.DecryptAesKey(
                                 Convert.FromBase64String(lastMessage.AesKey),
-                                _userDal.GetFirstOrDefault(u => u.UserId == lastMessage.SenderId).EncryptedPrivateKey
-                                , _userDal.GetFirstOrDefault(u => u.UserId == lastMessage.RecipientId).EncryptedPrivateKey)
-                            ;
+                                _userDal.GetFirstOrDefault(u => u.UserId == lastMessage.SenderId).EncryptedPrivateKey,
+                                _userDal.GetFirstOrDefault(u => u.UserId == lastMessage.RecipientId).EncryptedPrivateKey
+                            );
 
                             // Mesajı deşifre et
                             decryptedMessage = _cryptingService.DecryptMessage(
@@ -125,6 +125,7 @@ public class MessageManager : IMessageService
                         LastMessageDate = lastMessage?.SentAt
                     };
                 })
+                .OrderByDescending(chat => chat.LastMessageDate)  // Mesaj tarihine göre sıralama
                 .ToList();  // Listeye dönüştür
 
             // Geriye sohbet listesi döndür
@@ -140,6 +141,54 @@ public class MessageManager : IMessageService
 
 
 
+
+    public async Task<List<Message>> GetMessagesByChatAndUserIdAsync(int chatId, int userId)
+    {
+        try
+        {
+            // Alıcı (chatId) ve Gönderen (userId) arasında ki mesajları al
+            var messages = _messageDal.GetList()
+                .Where(m =>
+                    (m.SenderId == userId && m.RecipientId == chatId) ||  // Gönderen: userId, Alıcı: chatId
+                    (m.SenderId == chatId && m.RecipientId == userId))   // Gönderen: chatId, Alıcı: userId
+                .OrderBy(m => m.SentAt)  // Mesajları tarih sırasına göre sırala
+                .ToList();
+
+            // Mesajları şifresiz hale getir
+            foreach (var message in messages)
+            {
+                try
+                {
+                    // AES anahtarını deşifre et
+                    var aesKey = _cryptingService.DecryptAesKey(
+                        Convert.FromBase64String(message.AesKey),
+                        _userDal.GetFirstOrDefault(u => u.UserId == message.SenderId).EncryptedPrivateKey,
+                        _userDal.GetFirstOrDefault(u => u.UserId == message.RecipientId).EncryptedPrivateKey
+                    );
+
+                    // Mesajı deşifre et
+                    message.Content = _cryptingService.DecryptMessage(
+                        Convert.FromBase64String(message.Content),
+                        aesKey);
+                }
+                catch (Exception ex)
+                {
+                    // Hata durumunda mesajı belirt
+                    Console.WriteLine("Şifre çözme sırasında hata oluştu: " + ex.Message);
+                    message.Content = "Message decryption failed"; // Şifre çözülemezse mesajı belirt
+                }
+            }
+
+            // Geriye şifresi çözülmüş mesajları döndür
+            return messages;
+        }
+        catch (Exception ex)
+        {
+            // Hata durumunda loglama
+            Console.WriteLine("Bir hata oluştu: " + ex.Message);
+            return new List<Message>();  // Boş liste döndür
+        }
+    }
 
 
 
