@@ -35,9 +35,14 @@ builder.Services.AddScoped<ICryptingService, CryptingManager>();
 builder.Services.AddScoped<IMessageDal, EfMessageDal>();
 builder.Services.AddScoped<IMessageGroupsDal, EfMessageGroupsDal>();
 builder.Services.AddScoped<IUserTeamsDal, EfUserTeamsDal>();
+builder.Services.AddScoped<ITeamsDal, EfTeamsDal>();
+builder.Services.AddScoped<ITasksDal, EfTasksDal>();
+builder.Services.AddScoped<ITaskLocationDal, EfTaskLocationDal>();
 builder.Services.AddScoped<ISehirDal, EfSehirDal>();
 builder.Services.AddScoped<IAuthService, AuthManager>();
 builder.Services.AddScoped<IMessageService, MessageManager>();
+builder.Services.AddScoped<ITaskService, TaskManager>();
+
 // CORS Configuration (Allow only specific origins)
 builder.Services.AddCors(options =>
 {

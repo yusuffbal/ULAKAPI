@@ -22,7 +22,6 @@ namespace Entities.Models
         public int CreatedByUserId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation Properties
 
     }
 }

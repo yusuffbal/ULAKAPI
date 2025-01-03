@@ -28,12 +28,16 @@ namespace Entities.Models
         [Required]
         public int IsTeamTask { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public int TaskType { get; set; }
         public int TaskStatus { get; set; }
         public int TaskPriority { get; set; }
+        public DateOnly DateOfStart { get; set; }
+        public DateOnly DateOfEnd { get; set; }
+        public TimeOnly TimeOfStart { get; set; }
+        public int Hour { get; set; }
 
-    
+
     }
 }

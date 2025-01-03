@@ -23,7 +23,7 @@ namespace Entities.Models
         public string Address { get; set; }
         public decimal? Altitude { get; set; }
         public int? cityId { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation Property
