@@ -11,31 +11,25 @@ namespace Business.Concrete
     public class RsaCryptingService : IRsaCryptingService
     {
 
-        // AES anahtarını belirtilen public anahtarla şifreler
         public byte[] EncryptAesKey(string aesKey, string publicKeySender, string publicKeyReceiver)
         {
             try
             {
-                // Sender ve receiver için RSA parametrelerini yükleyin
                 RSAParameters rsaParametersSender = GetRsaParametersFromXml(publicKeySender);
                 RSAParameters rsaParametersReceiver = GetRsaParametersFromXml(publicKeyReceiver);
 
                 using (var rsaSender = new RSACng())
                 using (var rsaReceiver = new RSACng())
                 {
-                    rsaSender.ImportParameters(rsaParametersSender);  // Gönderenin anahtarını yükle
-                    rsaReceiver.ImportParameters(rsaParametersReceiver);  // Alıcının anahtarını yükle
+                    rsaSender.ImportParameters(rsaParametersSender); 
+                    rsaReceiver.ImportParameters(rsaParametersReceiver); 
 
-                    // AES anahtarını Base64'e çevirmeden önce doğru formatta olduğundan emin olun
                     byte[] aesKeyBytes = Convert.FromBase64String(aesKey);
 
-                    // Gönderenin public key'i ile AES anahtarını şifreleyin
                     byte[] encryptedBySender = rsaSender.Encrypt(aesKeyBytes, RSAEncryptionPadding.OaepSHA256);
 
-                    // Alıcının public key'i ile AES anahtarını şifreleyin
                     byte[] encryptedByReceiver = rsaReceiver.Encrypt(aesKeyBytes, RSAEncryptionPadding.OaepSHA256);
 
-                    // Şifrelenmiş AES anahtarlarını birleştirerek döndürelim (her iki tarafın şifreli versiyonları)
                     byte[] combinedEncryptedKeys = new byte[encryptedBySender.Length + encryptedByReceiver.Length];
                     Buffer.BlockCopy(encryptedBySender, 0, combinedEncryptedKeys, 0, encryptedBySender.Length);
                     Buffer.BlockCopy(encryptedByReceiver, 0, combinedEncryptedKeys, encryptedBySender.Length, encryptedByReceiver.Length);
@@ -103,31 +97,26 @@ namespace Business.Concrete
         {
             try
             {
-                // Sender ve receiver için RSA parametrelerini yükleyin
                 RSAParameters rsaParametersSender = GetRsaParametersFromXmlForPrivate(privateKeySender);
                 RSAParameters rsaParametersReceiver = GetRsaParametersFromXmlForPrivate(privateKeyReceiver);
 
                 using (var rsaSender = new RSACng())
                 using (var rsaReceiver = new RSACng())
                 {
-                    rsaSender.ImportParameters(rsaParametersSender);  // Gönderenin anahtarını yükle
-                    rsaReceiver.ImportParameters(rsaParametersReceiver);  // Alıcının anahtarını yükle
+                    rsaSender.ImportParameters(rsaParametersSender); 
+                    rsaReceiver.ImportParameters(rsaParametersReceiver);  
 
-                    // Şifrelenmiş AES anahtarını ikiye bölün (gönderen ve alıcı şifrelemesi)
                     byte[] encryptedBySender = new byte[encryptedAesKey.Length / 2];
                     byte[] encryptedByReceiver = new byte[encryptedAesKey.Length / 2];
 
                     Buffer.BlockCopy(encryptedAesKey, 0, encryptedBySender, 0, encryptedBySender.Length);
                     Buffer.BlockCopy(encryptedAesKey, encryptedBySender.Length, encryptedByReceiver, 0, encryptedByReceiver.Length);
 
-                    // Gönderenin private key'i ile AES anahtarını çözün
                     byte[] decryptedBySender = rsaSender.Decrypt(encryptedBySender, RSAEncryptionPadding.OaepSHA256);
 
-                    // Alıcının private key'i ile AES anahtarını çözün
                     byte[] decryptedByReceiver = rsaReceiver.Decrypt(encryptedByReceiver, RSAEncryptionPadding.OaepSHA256);
 
-                    // AES anahtarlarını eşleştirip Base64 string olarak geri döndürelim
-                    return Convert.ToBase64String(decryptedByReceiver); // Alıcının çözümlediği anahtar döndürülür
+                    return Convert.ToBase64String(decryptedByReceiver); 
                 }
             }
             catch (CryptographicException ex)
@@ -143,7 +132,7 @@ namespace Business.Concrete
             catch (Exception ex)
             {
                 Console.WriteLine("Decryption failed: " + ex.Message);
-                return null;  // Veya uygun bir dönüş değeri
+                return null; 
             }
         }
 

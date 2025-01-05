@@ -16,6 +16,14 @@ namespace Business.Abstract
         void AddTask(AddTaskDto task);
         Task<List<sehir>> GetCityList();
         Task<List<DashboardTaskListDto>> GetDashboardTask(DashboardMapFilter dashboardMapFilter);
+        Task<List<DashboardTaskListDto>> GetMyTask(int userId);
+        Task<List<TeamListDto>> GetTeamTable();
+        Task<List<UserSearchDto>> GetUserSearchList(string searchText);
+        void CreateTeam(CreateTeamDto teamDto);
+        Task<List<TeamPersonDto>> GetTeamPersonTable();
+        void AddUserTeam(UserTeam teamDto);
+        Task<List<TeamTaskListDto>> GetTeamTaskList();
+        void DeleteTask(int taskId);
 
 
     }

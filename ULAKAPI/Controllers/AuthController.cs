@@ -82,7 +82,6 @@ namespace ULAKAPI.Controllers
                 user.Email,
                 user.FirstName,
                 user.LastName
-                // Diğer kullanıcı bilgilerini burada döndürebilirsiniz
             });
         }
     }

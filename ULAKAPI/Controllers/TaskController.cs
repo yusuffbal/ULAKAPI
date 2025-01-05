@@ -92,5 +92,85 @@ namespace ULAKAPI.Controllers
 
         }
 
+        [HttpGet("GetDashboardMyTask/{userId}")]
+        public async Task<ActionResult<List<DashboardTaskListDto>>> GetDashboardMyTask(int userId)
+        {
+            var taskList = await _taskService.GetMyTask(userId);
+
+            return Ok(taskList);
+
+        }
+        [HttpGet("GetTeamTable")]
+
+        public async Task<ActionResult<List<TeamListDto>>> GetTeamTable()
+        {
+            var teamList = await _taskService.GetTeamTable();
+
+            return Ok(teamList);
+
+        }
+
+        [HttpPost("GetUserBySearch/{SearchText}")]
+        public async Task<ActionResult<List<UserSearchDto>>> GetUserSearchList(string SearchText)
+
+        {
+            var userSearch = _taskService.GetUserSearchList(SearchText);
+
+            return Ok(userSearch);
+        }
+
+        [HttpPost("CreateTeam")]
+        public IActionResult CreateTeam([FromBody] CreateTeamDto teamDto)
+        {
+            if (teamDto == null)
+            {
+                return BadRequest("Task data is required.");
+            }
+
+            try
+            {
+                _taskService.CreateTeam(teamDto);
+                return Ok("Task successfully added.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpGet("GetTeamPersonTable")]
+
+        public async Task<ActionResult<List<TeamPersonDto>>> GetTeamPersonTable()
+        {
+            var teamList = await _taskService.GetTeamPersonTable();
+
+            return Ok(teamList);
+
+        }
+        [HttpPost("AddUserTeam")]
+
+        public async Task<ActionResult<List<TeamPersonDto>>> AddUserTeam([FromBody]UserTeam userTeam)
+        {
+             _taskService.AddUserTeam(userTeam);
+
+            return Ok("Task successfully added.");
+
+        }
+
+        [HttpGet("GetTeamTaskList")]
+        public async Task<ActionResult<List<TeamTaskListDto>>> GetTeamTaskList()
+        {
+            var teamTaskList = await _taskService.GetTeamTaskList();
+            return Ok(teamTaskList);
+        }
+
+        [HttpDelete("DeleteTask/{taskId}")]
+        public IActionResult AddTask( int taskId)
+        {
+            _taskService.DeleteTask(taskId);
+
+            return Ok("Görev Başaraıyla Silindi");
+
+        }
     }
 }

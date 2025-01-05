@@ -5,6 +5,7 @@ using Entities.Filter;
 using Entities.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -71,6 +72,34 @@ namespace Business.Concrete
             _taskLocationDal.Add(taskLocation);
         }
 
+        public void AddUserTeam(UserTeam teamDto)
+        {
+            _userTeamDal.Add(teamDto);
+        }
+
+        public void CreateTeam(CreateTeamDto teamDto)
+        {
+            var Team = new Team
+            {
+                CreatedAt = DateTime.Now,
+                TeamName = teamDto.TeamName,
+                CreatedByUserId = teamDto.CreatedByUserId
+            };
+           
+            _teamsDal.Add(Team);
+        }
+
+        public void DeleteTask(int taskId)
+        {
+            var task = _taskDal.GetFirstOrDefault(x => x.TaskId == taskId);
+            var taskLoc = _taskLocationDal.GetFirstOrDefault(x => x.TaskId == taskId);
+            if(task != null)
+            {
+                _taskLocationDal.Delete(taskLoc);
+                _taskDal.Delete(task);
+            }
+        }
+
         public Task<List<sehir>> GetCityList()
         {
             var cityList = _sehirDal.GetList();
@@ -107,13 +136,26 @@ namespace Business.Concrete
             return tasks;
         }
 
-
-
-
-
-
-
-
+        public async Task<List<DashboardTaskListDto>> GetMyTask(int userId)
+        {
+            var tasks = await Task.Run(() =>
+               (from task in _taskDal.GetList()
+                join location in _taskLocationDal.GetList()
+                on task.TaskId equals location.TaskId
+                where
+                     (task.AssignedToUserId == userId) 
+                select new DashboardTaskListDto
+                {
+                    Id = task.TaskId,
+                    Title = task.Title,
+                    Description = task.Description,
+                    Latitude = location.Latitude,
+                    Longitude = location.Longitude,
+                    Status = task.TaskStatus
+                }).ToList()
+           );
+            return tasks;
+        }
 
         public Task<List<TaskTeamDto>> GetTeamList()
         {
@@ -133,10 +175,86 @@ namespace Business.Concrete
             return Task.FromResult(teamDto); 
         }
 
+        public Task<List<TeamPersonDto>> GetTeamPersonTable()
+        {
+            var userTeams = _userTeamDal.GetList();
+            var teamPersonList = new List<TeamPersonDto>();
+
+            foreach (var userTeam in userTeams)
+            {
+                var user = _userDal.GetFirstOrDefault(x => x.UserId == userTeam.UserId);
+                var teams = _teamsDal.GetFirstOrDefault(x => x.TeamId == userTeam.TeamId);
+                if (user != null)
+                {
+                    var teamDto = new TeamPersonDto
+                    {
+                        TeamName = teams.TeamName,
+                        PersonName = user.FirstName,
+                        PersonLastName = user.LastName
+                    };
+
+                    teamPersonList.Add(teamDto);
+                }
+            }
+
+            return Task.FromResult(teamPersonList);
+        }
+
+        public Task<List<TeamListDto>> GetTeamTable()
+        {
+            var teamList = _teamsDal.GetList();
+            var teamListDto = new List<TeamListDto>();
+
+            foreach (var team in teamList)
+            {
+                var user = _userDal.GetFirstOrDefault(x => x.UserId == team.CreatedByUserId);
+
+                if (user != null)
+                {
+                    var teamDto = new TeamListDto
+                    {
+                        Id = team.TeamId,
+                        TeamName = team.TeamName,
+                        TeamCreatorLastName = user.LastName,
+                        TeamCreatorName = user.FirstName
+                    };
+
+                    teamListDto.Add(teamDto);
+                }
+            }
+
+            return Task.FromResult(teamListDto);
+        }
+
+        public Task<List<TeamTaskListDto>> GetTeamTaskList()
+        {
+            var tasks = _taskDal.GetList();
+            var teamTaskListDtos = new List<TeamTaskListDto>();
+
+            foreach (var task in tasks)
+            {
+                var user = _userDal.GetFirstOrDefault(x => x.UserId == task.AssignedToUserId);
+                var teamTaskList = new TeamTaskListDto 
+                {
+                    TaskId = task.TaskId,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Title = task.Title,
+                    Description = task.Description,
+                    status = task.TaskStatus == 0 ? "Beklemede" :
+                             task.TaskStatus == 1 ? "Aktif" :
+                             task.TaskStatus == 2 ? "Tamamlandı" :
+                             "Bilinmiyor",
+                    TaskType = task.TaskType == 0 ? "Test" : "Bilinmiyor"
+                };
+
+                teamTaskListDtos.Add(teamTaskList);
+            }
+            return Task.FromResult(teamTaskListDtos);
+        }
 
         public async Task<List<UserTaskDto>> GetUserList()
         {
-            // Kullanıcıları listele
             var users =  _userDal.GetList(); 
             var userTaskDtos = new List<UserTaskDto>(); 
 
@@ -156,5 +274,24 @@ namespace Business.Concrete
             return userTaskDtos;
         }
 
+        public Task<List<UserSearchDto>> GetUserSearchList(string searchText)
+        {
+            var userList = _userDal.GetList(x =>
+                (x.FirstName != null && x.FirstName.ToLower().Contains(searchText.ToLower())) ||
+                (x.LastName != null && x.LastName.ToLower().Contains(searchText.ToLower()))
+            );
+            var userSearchDto = new List<UserSearchDto>();
+            foreach(var user in userList)
+            {
+                userSearchDto.Add(new UserSearchDto
+                {
+                    UserId = user.UserId,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName
+                });
+            }
+
+            return Task.FromResult(userSearchDto);
+        }
     }
 }

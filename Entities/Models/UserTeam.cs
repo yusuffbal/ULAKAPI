@@ -19,10 +19,6 @@ namespace Entities.Models
         public int UserId { get; set; }
         public int TeamId { get; set; }
 
-        [Required]
-        [MaxLength(50)]
-        public string Role { get; set; }
-
         // Navigation Properties
       
     }

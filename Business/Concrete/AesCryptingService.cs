@@ -37,7 +37,7 @@ namespace Business.Concrete
             using (var aesAlg = Aes.Create())
             {
                 aesAlg.Key = Convert.FromBase64String(aesKey);
-                byte[] iv = encryptedMessage.Take(aesAlg.BlockSize / 8).ToArray();  // IV'yi al
+                byte[] iv = encryptedMessage.Take(aesAlg.BlockSize / 8).ToArray();  
 
                 using (var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, iv))
                 using (var ms = new MemoryStream(encryptedMessage.Skip(aesAlg.BlockSize / 8).ToArray()))
