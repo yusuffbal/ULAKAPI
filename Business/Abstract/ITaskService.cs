@@ -24,7 +24,10 @@ namespace Business.Abstract
         void AddUserTeam(UserTeam teamDto);
         Task<List<TeamTaskListDto>> GetTeamTaskList();
         void DeleteTask(int taskId);
+        Task<List<MyTaskDto>> MyTaskTable(MyTaskFilter myTaskFilter);
 
+        void TaskUpdateStatus(TaskStatusUpdateDto updateDto);
+        Task<TaskDetailDto> TaskDetail(int taskId);
 
     }
 }

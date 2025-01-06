@@ -94,14 +94,13 @@ namespace Business.Concrete
             {
                 try
                 {
-                    // Public ve Private Key'leri XML formatında al
-                    string publicKey = rsa.ToXmlString(false); // Sadece Public Key
-                    string privateKey = rsa.ToXmlString(true); // Public + Private Key
+                    string publicKey = rsa.ToXmlString(false); 
+                    string privateKey = rsa.ToXmlString(true); 
                     return (publicKey, privateKey);
                 }
                 finally
                 {
-                    rsa.PersistKeyInCsp = false; // Bellekte kalıcı olmasın
+                    rsa.PersistKeyInCsp = false; 
                 }
             }
         }

@@ -172,5 +172,32 @@ namespace ULAKAPI.Controllers
             return Ok("Görev Başaraıyla Silindi");
 
         }
+
+        [HttpPost("GetMyTaskTable")]
+        public async Task<ActionResult<List<MyTaskDto>>> GetMyTaskTable([FromBody] MyTaskFilter myTaskFilter)
+        {
+            var myTaskTable = await _taskService.MyTaskTable(myTaskFilter);
+
+            return Ok(myTaskTable);
+        }
+
+        [HttpPost("UpdateStatus")]
+
+        public async Task<ActionResult<List<TeamPersonDto>>> UpdateStatus([FromBody] TaskStatusUpdateDto statusUpdateDto)
+        {
+            _taskService.TaskUpdateStatus(statusUpdateDto);
+
+            return Ok("Başarıyla güncellendi.");
+
+        }
+        [HttpGet("TaskDetail/{taskId}")]
+        public async Task<ActionResult<TaskDetailDto>> TaskDetail(int taskId)
+        {
+            var task = await _taskService.TaskDetail(taskId);
+
+            return Ok(task);
+        }
+
+
     }
 }

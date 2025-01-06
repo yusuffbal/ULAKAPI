@@ -67,7 +67,6 @@ namespace ULAKAPI.Controllers
             return Ok(messages);
         }
 
-        // Yeni: Gruba ait mesajları çekme
         [HttpGet("get-messages-by-group/{groupId}")]
         public async Task<IActionResult> GetMessagesByGroupIdAsync(int groupId)
         {
@@ -102,18 +101,15 @@ namespace ULAKAPI.Controllers
                 // Get messages by chatId and userId
                 var messages = await _messageService.GetMessagesByChatAndUserIdAsync(chatId, userId);
 
-                // Eğer mesaj yoksa, 404 döndür
                 if (messages == null || messages.Count == 0)
                 {
                     return NotFound("No messages found.");
                 }
 
-                // 200 OK ve mesajlar
                 return Ok(messages);
             }
             catch (Exception ex)
             {
-                // Hata durumu: 500 Internal Server Error
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }

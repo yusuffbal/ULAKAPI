@@ -55,12 +55,10 @@ namespace Business.Concrete
         }
 
 
-        // XML formatındaki public key'i RSAParameters'a dönüştüren yardımcı fonksiyon
         private RSAParameters GetRsaParametersFromXml(string publicKey)
         {
             var rsaParameters = new RSAParameters();
 
-            // XML'den modulus ve exponent değerlerini ayıklayın
             var xmlDoc = new System.Xml.XmlDocument();
             xmlDoc.LoadXml(publicKey);
 
@@ -75,7 +73,6 @@ namespace Business.Concrete
         {
             var rsaParameters = new RSAParameters();
 
-            // XML'den modulus, exponent, d, p, q, dp, dq ve inverseD değerlerini ayıklayın
             var xmlDoc = new System.Xml.XmlDocument();
             xmlDoc.LoadXml(privateKey);
 
@@ -92,7 +89,6 @@ namespace Business.Concrete
         }
 
 
-        // Şifrelenmiş AES anahtarını belirtilen private anahtarla çözer
         public string DecryptAesKey(byte[] encryptedAesKey, string privateKeySender, string privateKeyReceiver)
         {
             try
@@ -139,7 +135,6 @@ namespace Business.Concrete
 
 
 
-        // AES anahtarını her iki kullanıcının public anahtarıyla şifreler
         public byte[] EncryptAesKeyForMultipleUsers(string aesKey, string[] publicKeys)
         {
             byte[] aesKeyBytes = Convert.FromBase64String(aesKey);
@@ -150,7 +145,6 @@ namespace Business.Concrete
                 using (var rsa = new RSACryptoServiceProvider())
                 {
                     rsa.FromXmlString(publicKey);
-                    // RSA ile her kullanıcının public anahtarıyla AES anahtarını şifrele
                     byte[] encryptedKey = rsa.Encrypt(aesKeyBytes, RSAEncryptionPadding.OaepSHA256);
                     encryptedData.AddRange(encryptedKey);
                 }

@@ -29,27 +29,22 @@ public class MessageManager : IMessageService
 
     public void SendMessage(Message message)
     {
-        // Yeni AES anahtarı oluşturuluyor
         var aesKey = _cryptingService.GenerateAesKey();
 
-        // Mesaj AES ile şifreleniyor
         var encryptedMessage = _cryptingService.EncryptMessage(message.Content, aesKey);
 
         var senderPublicKey = _userDal.GetFirstOrDefault(x => x.UserId == message.SenderId).PublicKey;
 
-        // Alıcının public key'i alınıyor
         var receiverPublicKey = _userDal.GetFirstOrDefault(x => x.UserId == message.RecipientId).PublicKey;
 
-        // AES anahtarı RSA ile şifreleniyor
         var encryptedAesKey = _cryptingService.EncryptAesKey(aesKey, senderPublicKey, receiverPublicKey);
 
-        // Şifrelenmiş mesaj ve AES anahtarı veritabanına kaydediliyor
         _messageDal.Add(new Message
         {
             SenderId = message.SenderId,
             RecipientId = message.RecipientId,
-            Content = Convert.ToBase64String(encryptedMessage),  // Şifreli mesaj
-            AesKey = Convert.ToBase64String(encryptedAesKey)  // Şifrelenmiş AES anahtarı
+            Content = Convert.ToBase64String(encryptedMessage),  
+            AesKey = Convert.ToBase64String(encryptedAesKey)  
         });
     }
 
@@ -71,12 +66,10 @@ public class MessageManager : IMessageService
     {
         try
         {
-            // Kullanıcının private key'ini al
             var currentUserPrivateKey = _userDal.GetFirstOrDefault(u => u.UserId == currentUserId).EncryptedPrivateKey;
 
-            // Bireysel sohbetleri almak için kullanıcı listesi
             var individualChats = _userDal.GetList()
-                .Where(u => u.UserId != currentUserId)  // Sadece diğer kullanıcılar
+                .Where(u => u.UserId != currentUserId)  
                 .Select(user =>
                 {
                     // Son mesajı al
@@ -84,58 +77,52 @@ public class MessageManager : IMessageService
                         .Where(m =>
                             (m.SenderId == currentUserId && m.RecipientId == user.UserId) ||
                             (m.SenderId == user.UserId && m.RecipientId == currentUserId))
-                        .OrderByDescending(m => m.SentAt)  // Son mesajı sırala
+                        .OrderByDescending(m => m.SentAt)  
                         .FirstOrDefault();
 
-                    // Varsayılan şifre çözülmüş mesaj
                     string decryptedMessage = "";
 
                     if (lastMessage != null)
                     {
                         try
                         {
-                            // AES anahtarını deşifre et
                             var aesKey = _cryptingService.DecryptAesKey(
                                 Convert.FromBase64String(lastMessage.AesKey),
                                 _userDal.GetFirstOrDefault(u => u.UserId == lastMessage.SenderId).EncryptedPrivateKey,
                                 _userDal.GetFirstOrDefault(u => u.UserId == lastMessage.RecipientId).EncryptedPrivateKey
                             );
 
-                            // Mesajı deşifre et
                             decryptedMessage = _cryptingService.DecryptMessage(
                                 Convert.FromBase64String(lastMessage.Content),
                                 aesKey);
                         }
                         catch (Exception ex)
                         {
-                            // Hata durumunda mesajı belirt
                             Console.WriteLine("Şifre çözme sırasında hata oluştu: " + ex.Message);
                             decryptedMessage = "Message decryption failed";
                         }
                     }
 
-                    // Chat listesi için DTO oluştur
                     return new ChatListDto
                     {
                         ChatId = user.UserId,
-                        MessageType = 0,  // Mesaj tipi 0 olarak varsayalım (örnek)
+                        MessageType = 0,  
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         LastMessage = decryptedMessage,
                         LastMessageDate = lastMessage?.SentAt
                     };
                 })
-                .OrderByDescending(chat => chat.LastMessageDate)  // Mesaj tarihine göre sıralama
-                .ToList();  // Listeye dönüştür
+                .OrderByDescending(chat => chat.LastMessageDate) 
+                .ToList();  
 
-            // Geriye sohbet listesi döndür
             return individualChats;
         }
         catch (Exception ex)
         {
             // Genel hata durumunda loglama
             Console.WriteLine("Bir hata oluştu: " + ex.Message);
-            return new List<ChatListDto>();  // Boş liste döndür
+            return new List<ChatListDto>();  
         }
     }
 

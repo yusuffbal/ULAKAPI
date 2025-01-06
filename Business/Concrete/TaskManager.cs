@@ -293,5 +293,77 @@ namespace Business.Concrete
 
             return Task.FromResult(userSearchDto);
         }
+
+        public Task<List<MyTaskDto>> MyTaskTable(MyTaskFilter myTaskFilter)
+        {
+            var tasks = _taskDal.GetList(x =>
+                            (myTaskFilter.priority == -1 || x.TaskPriority == myTaskFilter.priority) &&
+                            (myTaskFilter.status == -1 || x.TaskStatus == myTaskFilter.status) &&
+                            (string.IsNullOrEmpty(myTaskFilter.title) || myTaskFilter.title == "" || x.Title.Contains(myTaskFilter.title)) &&
+                            (myTaskFilter.taskId == -1 || x.TaskId == myTaskFilter.taskId)
+ );
+
+            var myTaskDtos = new List<MyTaskDto>();
+
+            foreach (var task in tasks)
+            {
+                var myTaskDto = new MyTaskDto
+                {
+                    description = task.Description,
+                    status= task.TaskStatus == 0 ? "Beklemede" :
+                             task.TaskStatus == 1 ? "Aktif" :
+                             task.TaskStatus == 2 ? "Tamamlandı" :
+                             "Bilinmiyor",
+                    priority = task.TaskPriority == 0 ? "Düşük Öncelik":
+                               task.TaskPriority == 1 ? "Orta Öncelik":
+                               task.TaskPriority == 2 ? "Yüksek Öncelik" :
+                               task.TaskPriority == 3 ? "Acil Öncelik" :
+                               "Bilinmiyor",
+                    taskType = task.TaskType == 0 ? "Test" : "Bilinmiyor"
+                };
+                myTaskDtos.Add(myTaskDto);
+            }
+            return Task.FromResult(myTaskDtos);
+        }
+
+        public Task<TaskDetailDto> TaskDetail(int taskId)
+        {
+            var task = _taskDal.GetFirstOrDefault(x => x.TaskId == taskId);
+            var taskDetail = new TaskDetailDto
+            {
+                FirstName = _userDal.GetFirstOrDefault(x => x.UserId == task.AssignedToUserId).FirstName,
+                LastName = _userDal.GetFirstOrDefault(x => x.UserId == task.AssignedToUserId).LastName,
+                TeamName = _teamsDal.GetFirstOrDefault(x =>x.TeamId == task.AssignedToTeamId).TeamName,
+                TaskId = task.TaskId,
+                title = task.Title,
+                status = task.TaskStatus == 0 ? "Beklemede" :
+                             task.TaskStatus == 1 ? "Aktif" :
+                             task.TaskStatus == 2 ? "Tamamlandı" :
+                             "Bilinmiyor",
+                priority = task.TaskPriority == 0 ? "Düşük Öncelik" :
+                               task.TaskPriority == 1 ? "Orta Öncelik" :
+                               task.TaskPriority == 2 ? "Yüksek Öncelik" :
+                               task.TaskPriority == 3 ? "Acil Öncelik" :
+                               "Bilinmiyor",
+                type = task.TaskType == 0 ? "Test" : "Bilinmiyor",
+                DateOfStart = task.DateOfStart,
+                DateOfEnd = task.DateOfEnd,
+                TimeOfStart = task.TimeOfStart,
+                description = task.Description
+            };
+            return Task.FromResult(taskDetail);
+        }
+
+        public void TaskUpdateStatus(TaskStatusUpdateDto updateDto)
+        {
+            var task = _taskDal.GetFirstOrDefault(x => x.TaskId == updateDto.id);
+
+            if (task != null)
+            {
+                task.TaskStatus = updateDto.status; 
+                _taskDal.Update(task);
+            }
+
+        }
     }
 }
